@@ -1,62 +1,51 @@
-# import necessary libraries
 import nltk
-from nltk.corpus import brown, conll2000, treebank
+import re
+from nltk.corpus import conll2000, treebank, brown
 
-# Сomment the lines below to remove downloadable NLTK resources
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('tagsets')
-nltk.download('conll2000')
-nltk.download('treebank')
-nltk.download('brown')
+# Task 1: Tokenize and Part-of-Speech (POS) tag a given text
+text = "Machine Learning evolved from computer science that primarily studies the design of algorithms that can learn " \
+       "from experience. To learn, they need data that has certain attributes based on which the algorithms try to " \
+       "find some meaningful predictive patterns. Majorly, ML tasks can be categorized as concept learning, " \
+       "clustering, predictive modeling, etc. The ultimate goal of ML algorithms is to be able to take decisions " \
+       "without any human intervention correctly. Predicting the stocks or weather are a couple of applications of " \
+       "machine learning algorithms."
+tokens = nltk.word_tokenize(text)
+pos_tags = nltk.pos_tag(tokens)
+print(pos_tags)
 
-# define text to be analyzed
-text = 'Machine Learning evolved from computer science that primarily studies the design of ' \
-       'algorithms that can learn from experience. To learn, they need data that has certain ' \
-       'attributes based on which the algorithms try to find some meaningful predictive patterns. ' \
-       'Majorly, ML tasks can be categorized as concept learning, clustering, predictive ' \
-       'modeling, etc. The ultimate goal of ML algorithms is to be able to take decisions without ' \
-       'any human intervention correctly. Predicting the stocks or weather are a couple of ' \
-       'applications of machine learning algorithms.'
+# Task 2: Print information about given POS tags
+tags = ['CC', 'IN', 'NN', 'JJ']
+for tag in tags:
+    print(nltk.help.upenn_tagset(tag))
 
-# tokenize the text into words and then tag each word with its part of speech
-tokenised = nltk.word_tokenize(text)
-taged = nltk.pos_tag(tokenised)
-
-# print the tagged words
-print(taged)
-
-# define a list of POS tags and print the definition of each tag using the upenn_tagset method
-tags = ['CC', 'IN', 'NN', 'JJ', 'DT', 'CD']
-for i in tags:
-    nltk.help.upenn_tagset(i)
-
-# print the raw data of conll2000 and treebank corpora
+# Task 3: Print raw text from conll2000 and treebank corpora
 print(conll2000.raw())
 print(treebank.raw())
 
-# print the tagged sentences of conll2000 and brown corpora
+# Task 4: Print tagged sentences from conll2000 and brown corpora
 print(conll2000.tagged_sents())
 print(brown.tagged_sents())
 
-# select a subset of sentences from the brown corpus
-sent = brown.sents(categories='fiction')
-
-# Task 2: Define regex patterns for different POS tags
+# Task 5: Tag words in a given text based on predefined patterns
 patterns = [
-    (r'\d ', 'CD'),
-    (r'(this|these|those|that)$', 'DT'),
-    (r'.*(ble|full)$', 'JJ'),
-    (r'(CC)$', 'CC'),
-    (r'(IN)$', 'IN'),
-    (r'(NN|NNS|NNP|NNPS)$', 'NN')
+    (r'\d+', 'CD'),  # CD: cardinal number
+    (r'\b(the|a|an)\b', 'DT'),  # DT: determiner
+    (r'\b\w+(ous|able|ible|al|ful|ic|ish|ive|less|like|y|er|est)\b', 'JJ'),  # JJ: adjective
+    (r'\b\w+ly\b', 'RB'),  # RB: adverb
+    (r'\b\w+s\b', 'NNS'),  # NNS: plural noun
+    (r'\b\w+ing\b', 'VBG'),  # VBG: gerund verb
+    (r'\b\w+ed\b', 'VBD'),  # VBD: past tense verb
+    (r'\b\w+\b', 'NN'),  # NN: singular noun
+    (r'\b(can|will|should)\b', 'MD'),  # MD: modal auxiliary verb
 ]
+regex_patterns = [(re.compile(p), tag) for (p, tag) in patterns]
+sentences = brown.sents(categories='fiction')[:2]
+tagged_sentences = [[(word, tag) if pattern.search(word) else (word, None) for pattern, tag in regex_patterns] for
+                    sentence in sentences for word in sentence]
+for tagged_sentence in tagged_sentences:
+    print(tagged_sentence)
 
-# apply the regex patterns to the selected sentences from the brown corpus
-regexp_tagger = nltk.RegexpTagger(patterns)
-print(regexp_tagger.tag(sent[0]), '\n', regexp_tagger.tag(sent[1]))
-
-# Task 3: Define regex patterns for Ukrainian POS tags
+# Task 6: Tag words in a given Ukrainian text based on predefined patterns
 ukr_patterns = [
     (r'(у|на|з|поряд|в|до|по|без])$', 'ПРИЙМ'),
     (r'(.*[а|е|и|і|о|у|я|ю|є|ї])+$', 'ДІЄСЛ'),
@@ -64,7 +53,6 @@ ukr_patterns = [
     (r'(.*[а|е|є|і|о|у|я|ю])+$', 'ІМЕН')
 ]
 
-# apply the regex patterns to a sample Ukrainian text
 ukr_text = 'дивитись на  рухливі цятки вогню завороженний , на тремтячі його язички, що, ' \
            'коливаючись, щось безмовно розповідали й дорозі, й деревам, і ' \
            'чорному небу, — і все їх, мабуть, розуміло, бо ж слухало заворожено.  '
